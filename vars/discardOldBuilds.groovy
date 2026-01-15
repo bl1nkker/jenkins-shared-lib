@@ -7,7 +7,7 @@ def call(){
     stages {
       stage("Example") {
         steps{
-          sh 'echo Hello World :)'
+          sh 'echo Hello Captain'
         }
       }
     }
