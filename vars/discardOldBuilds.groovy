@@ -5,9 +5,10 @@ def call(){
     }
     agent { label "ansible" }
     stages {
-      stage("Example")
+      stage("Example") {
         steps{
           sh 'echo Hello World :)'
+        }
       }
     }
   }
