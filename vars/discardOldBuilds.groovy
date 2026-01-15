@@ -1,7 +1,7 @@
 def call(){
   pipeline {
     options {
-      buildDiscarder(logRotator(daysToKeepStr: '365', numToKeepStr: '30')
+      buildDiscarder(logRotator(daysToKeepStr: '365', numToKeepStr: '30'))
     }
     agent { label "ansible" }
     stages {
