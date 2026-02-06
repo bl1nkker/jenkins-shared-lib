@@ -3,7 +3,7 @@ import groovy.text.StreamingTemplateEngine
 def call(){
   echo "About to send email..."
   def body = emailTemplate([
-    "STATUS_COLOR: red,
+    "STATUS_COLOR": "red",
     "ARTIFACTS": [
       [url: "google.com", short_name: "name1", full_name: "full2"],
       [url: "google2.com", short_name: "name12", full_name: "full23"]
