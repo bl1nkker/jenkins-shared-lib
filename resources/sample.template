@@ -120,7 +120,7 @@
     <BODY>
         <div class="content round_border">
             <div class="status">
-                <p class="info">${project.name} ${build.displayName} <%= renameState(build.result.toString()) %></p>
+                <p class="info">${INFO_TEXT}</p>
             </div>
 
             <div class="main round_border">
@@ -128,19 +128,19 @@
                     <tbody>
                         <tr>
                             <th>Build URL:</th>
-                            <td><a href="${rooturl}${build.url}">${rooturl}...</a></td>
+                            <td><a href="${BUILD_URL}">${BUILD_URL}...</a></td>
                         </tr>
                         <tr>
                             <th>Date of build:</th>
-                            <td>${it.timestampString}</td>
+                            <td>${BUILD_TIME}</td>
                         </tr>
                         <tr>
                             <th>Build duration:</th>
-                            <td>${build.durationString}</td>
+                            <td>${BUILD_DURATION}</td>
                         </tr>
                         <tr>
                             <th>Changes:</th>
-                            <td><a href="${rooturl}${build.url}changes">${rooturl}...changes</a></td>
+                            <td><a href="${BUILD_URL}/changes">${BUILD_URL}...changes</a></td>
                         </tr>
                         <%
                             add_string("Uploaded to Artifactory:" ); 
