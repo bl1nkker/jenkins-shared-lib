@@ -9,7 +9,7 @@ def call(){
       [url: "google2.com", short_name: "name12", full_name: "full23"]
     ],
     "BUILD_URL": env.BUILD_URL,
-    "INFO_TEXT": "${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME} ${renameState(currentBuild.currentResult)}",
+    "INFO_TEXT": "${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME} ${currentBuild.currentResult}",
     "BUILD_TIME": currentBuild.rawBuild.getTimestampString(),
     "BUILD_DURATION": currentBuild.rawBuild.getDurationString()
   ]);
