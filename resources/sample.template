@@ -65,8 +65,7 @@
                 border: 1px solid #ccc
             }
             .status {
-                background-color: <%=parseBuildResult(build.result.toString())%>;
-                font-size: 28px;
+                background-color: ${STATUS_COLOR}; font-size: 28px;
                 font-weight: bold;
                 color: white;
                 width: 720px;
@@ -121,80 +120,6 @@
     </HEAD>
 
     <BODY>
-
-        <%
-            def String parseBuildResult(String status){
-            if (status == "SUCCESS") {return "green"}
-            if (status == "FAILURE" || status == "NOT_BUILD" || status == "ABORTED" ) { return "red" }
-            return "goldenrod"
-            }
-
-            def String renameState(String status){
-            if (status == "SUCCESS") {return "success"}
-            if (status == "FAILURE") {return "failed"}
-            if (status == "NOT_BUILD") {return "not build"} 
-            if (status == "ABORTED") {return "aborted"}
-            return "unstable"
-            }
-
-            def add_string(a_title)
-            {
-                def mvn_url = build.getEnvironment().get( 'MVN_URL' )
-                if (mvn_url.endsWith("/")) { 
-                    mvn_url = mvn_url.substring(0, mvn_url.lastIndexOf("/")) 
-                }
-                def title_written = false;
-                def artifacts_txt = it.getAction("org.jenkinsci.plugins.workflow.cps.EnvActionImpl").getEnvironment().get( 'ARTIFACTS_TXT' )
-                def artifacts = artifacts_txt
-                    ?.readLines()
-                    ?.findAll { it?.trim() }
-
-                for ( artif in artifacts )
-                {
-                    def artif_l = artif.trim();
-                    def lsgrp = artif_l.split( ":" );
-
-                    if ( lsgrp.size() < 3 )
-                    {
-                        continue;
-                    }
-
-                    if ( lsgrp.size() == 3 )
-                    {
-                        lsgrp += ["jar"]
-                    }
-
-                    if ( !title_written )
-                    {
-                        
-                        %><tr><th><b>${a_title}<b></th></tr><%
-                        title_written = true;
-                    }
-
-                    def artif_url = [mvn_url, "maven-virtual"].join('/');
-                    def artif_fn = [lsgrp[1], lsgrp[2]].join('-');
-                    if ( lsgrp.size() > 4) {
-                        artif_fn = [artif_fn, lsgrp[4]].join('-')
-                    }
-                    artif_fn = [artif_fn, lsgrp[3]].join('.')
-                    artif_url = [artif_url, lsgrp[0].replaceAll('\\.', '/'), lsgrp[1], lsgrp[2], artif_fn].join('/')
-                    %><tr><td>File link: </td><td> <a href="${artif_url}">${artif_fn}</a></td></tr>
-                    <tr><td>FILE_LIST format: </td><td> <b>${artif_l}</b></td></tr> <%
-                }
-                return;
-            }
-        %>
-
-
-        <%
-            if (rooturl.indexOf("test") != -1) {
-                %>
-                    <center>
-                        <h4>NB! This email has been sent from a test system.</h4>
-                    </center>
-                <%
-            }
-        %>
         <div class="content round_border">
             <div class="status">
                 <p class="info">${project.name} ${build.displayName} <%= renameState(build.result.toString()) %></p>
@@ -222,6 +147,16 @@
                         <%
                             add_string("Uploaded to Artifactory:" ); 
                         %>
+                        <% ARTIFACTS.each { a -> %>
+                          <tr>
+                              <td>File Link:</td>
+                              <td><a href="${a.url}">${a.short_name}</a></td>
+                          </tr>
+                           <tr>
+                              <td>File List format:</td>
+                              <td><b>${a.full_name}</b></td>
+                          </tr>
+                        <% } %>
                         <tr>
                             <td colspan="2">&nbsp;</td>
                         </tr>
