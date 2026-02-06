@@ -1,6 +1,4 @@
 <HTML>
-    <%def rooturl=Jenkins.instance.getRootUrl()%>
-
     <HEAD>
         <STYLE type="text/css">
 

@@ -7,7 +7,8 @@ def call(){
     "ARTIFACTS": [
       [url: "google.com", short_name: "name1", full_name: "full2"],
       [url: "google2.com", short_name: "name12", full_name: "full23"]
-    ]
+    ],
+    "rooturl": "http://localhost:8080"
 
   ]);
   emailext(
