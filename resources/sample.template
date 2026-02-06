@@ -142,9 +142,6 @@
                             <th>Changes:</th>
                             <td><a href="${BUILD_URL}/changes">${BUILD_URL}...changes</a></td>
                         </tr>
-                        <%
-                            add_string("Uploaded to Artifactory:" ); 
-                        %>
                         <% ARTIFACTS.each { a -> %>
                           <tr>
                               <td>File Link:</td>
