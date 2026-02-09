@@ -13,12 +13,13 @@ def call(){
       currentBuild.currentResult,
       'goldenrod' // fallback
   )
+  
   def body = emailTemplate([
     "STATUS_COLOR": statusColor,
     "ARTIFACTS": readArtifactsFromFile("artifacts.txt"), 
     "BUILD_URL": env.BUILD_URL,
     "INFO_TEXT": "${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME} ${currentBuild.currentResult}",
-    "BUILD_TIME": currentBuild.rawBuild.getTimestampString(),
+    "BUILD_TIME": currentBuild.rawBuild.getStartTimeInMillis(),
     "BUILD_DURATION": currentBuild.rawBuild.getDurationString()
   ]);
   emailext(
