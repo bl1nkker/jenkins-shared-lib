@@ -1,35 +1,36 @@
 import groovy.text.StreamingTemplateEngine
 
 def call(){
-  echo "About to send email..."
+  echo "--> Started: sending an email about build results"
   def statusColorMap = [
     'SUCCESS'  : 'green',
     'FAILURE'  : 'red',
-    'UNSTABLE' : 'goldenrod',
-    'ABORTED'  : 'gray'
+    'NOT_BUILD' : 'red',
+    'ABORTED'  : 'red'
   ]
 
-  def statusColor = statusColorMap.get(
-      currentBuild.currentResult,
-      'goldenrod' // fallback
-  )
-  
   def body = emailTemplate([
-    "STATUS_COLOR": statusColor,
-    "ARTIFACTS": readArtifactsFromFile("artifacts.txt"), 
-    "BUILD_URL": env.BUILD_URL,
+    "STATUS_COLOR": statusColorMap.get(currentBuild.currentResult, 'goldenrod'),
     "INFO_TEXT": "${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME} ${currentBuild.currentResult}",
+    "BUILD_URL": env.BUILD_URL,
     "BUILD_TIME": new Date(currentBuild.rawBuild.getStartTimeInMillis()).toString(),
     "BUILD_DURATION": currentBuild.rawBuild.getDurationString()
+    "ARTIFACTS": readArtifactsFromFile("artifacts.txt"),
   ]);
+
+  List mailRecipients = ['nurovich14@gmail.com',]
   emailext(
     body: body,
     mimeType: 'text/html',
     subject: '$DEFAULT_SUBJECT',
-    to: 'nurovich14@gmail.com',
-    recipientProviders: []
+    to: mailRecipients.join(', '),
+    recipientProviders: [
+    //   requestor(),
+    //   brokenBuildSuspects(),
+    //   upstreamDevelopers(),
+    ]
   )
-  echo "Email just sent."
+  echo "--> Finished: sending an email about build results"
 }
 
 def readArtifactsFromFile(String fileName) {
@@ -54,21 +55,21 @@ def readArtifactsFromFile(String fileName) {
         : "${mvnUrl}/content/repositories/public"
 
     readFile(fileName).readLines().each { line ->
-        def artif = line.trim()
-        if (!artif) return
+        def artifact = line.trim()
+        if (!artifact) return
 
-        def lsgrp = artif.split(":")
+        def lsgrp = artifact.split(":")
         if (lsgrp.size() < 3) return
         if (lsgrp.size() == 3) lsgrp += ["jar"]
 
         def artifactId = lsgrp[1]
-        def version    = lsgrp[2]
-        def packaging  = lsgrp[3]
+        def version = lsgrp[2]
+        def pkging = lsgrp[3]
         def classifier = lsgrp.size() > 4 ? lsgrp[4] : null
 
         def fileNameFinal = classifier
-            ? "${artifactId}-${version}-${classifier}.${packaging}"
-            : "${artifactId}-${version}.${packaging}"
+            ? "${artifactId}-${version}-${classifier}.${pkging}"
+            : "${artifactId}-${version}.${pkging}"
 
         def url = [
             baseUrl,
@@ -94,7 +95,5 @@ def emailTemplate(params) {
   def fileName = "sample.template"
   def fileContents = libraryResource(fileName)
   def engine = new StreamingTemplateEngine()
-  echo "Preparation is done"
   return engine.createTemplate(fileContents).make(params).toString()
 }
-
