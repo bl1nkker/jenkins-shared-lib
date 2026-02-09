@@ -14,8 +14,8 @@ def call(){
     "INFO_TEXT": "${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME} ${currentBuild.currentResult}",
     "BUILD_URL": env.BUILD_URL,
     "BUILD_TIME": new Date(currentBuild.rawBuild.getStartTimeInMillis()).toString(),
-    "BUILD_DURATION": currentBuild.rawBuild.getDurationString()
-    "ARTIFACTS": readArtifactsFromFile("artifacts.txt"),
+    "BUILD_DURATION": currentBuild.rawBuild.getDurationString(),
+    "ARTIFACTS": readArtifactsFromFile("artifacts.txt")
   ]);
 
   List mailRecipients = ['nurovich14@gmail.com',]
