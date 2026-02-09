@@ -19,7 +19,7 @@ def call(){
     "ARTIFACTS": readArtifactsFromFile("artifacts.txt"), 
     "BUILD_URL": env.BUILD_URL,
     "INFO_TEXT": "${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME} ${currentBuild.currentResult}",
-    "BUILD_TIME": currentBuild.rawBuild.getStartTimeInMillis(),
+    "BUILD_TIME": currentBuild.rawBuild.getStartTimeInMillis().toString(),
     "BUILD_DURATION": currentBuild.rawBuild.getDurationString()
   ]);
   emailext(
