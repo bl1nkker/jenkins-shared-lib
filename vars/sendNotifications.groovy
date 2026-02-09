@@ -14,7 +14,7 @@ def call(){
       'goldenrod' // fallback
   )
   def body = emailTemplate([
-    "STATUS_COLOR": "red",
+    "STATUS_COLOR": statusColor,
     "ARTIFACTS": readArtifactsFromFile("artifacts.txt"), 
     "BUILD_URL": env.BUILD_URL,
     "INFO_TEXT": "${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME} ${currentBuild.currentResult}",
