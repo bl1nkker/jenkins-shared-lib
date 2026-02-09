@@ -1,4 +1,5 @@
 import psycopg2
+import os
 from datetime import datetime, timedelta
 
 conn = psycopg2.connect(
