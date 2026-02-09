@@ -82,7 +82,7 @@ def readArtifactsFromFile(String fileName) {
         result << [
             url       : url,
             short_name: fileNameFinal,
-            full_name : artif
+            full_name : artifact
         ]
     }
 
