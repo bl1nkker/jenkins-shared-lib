@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     if not PSQL_URL:
         raise ValueError("PSQL_MQ_URL must be set for this job")
-    logging.info("PSQL_MQ_URL variable is set to '%s'", PSQL_MQ_URL)
+    logging.info("PSQL_MQ_URL variable is set to '%s'", PSQL_URL)
     cutoff = datetime.utcnow() - timedelta(days=30)
     PSQL_USER = os.environ.get("PSQL_MQ_USER")
     PSQL_PASS = os.environ.get("PSQL_MQ_PASSWORD") 
