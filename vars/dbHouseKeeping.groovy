@@ -21,7 +21,7 @@ def call() {
             ]]) {
               withPythonEnv("python3") {
                 sh 'pip install -r requirements.txt'
-                sh 'python3 clear_table.py'
+                sh 'python3 -u clear_table.py'
               }
             }
           }

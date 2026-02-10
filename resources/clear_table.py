@@ -18,6 +18,7 @@ with conn:
             RETURNING id
         """, (cutoff,))
         deleted = cur.rowcount
+        print(f"Deleted: {deleted}")
         #cur.execute("""
         #    SELECT * FROM mq.queue_message
         #    WHERE creation_date >= %s
