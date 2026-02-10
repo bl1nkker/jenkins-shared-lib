@@ -5,17 +5,19 @@ from datetime import datetime, timedelta
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    PSQL_MQ_URL = os.environ.get("PSQL_MQ_URL")
+    PSQL_URL = os.environ.get("PSQL_MQ_URL")
 
-    if not PSQL_MQ_URL:
+    if not PSQL_URL:
         raise ValueError("PSQL_MQ_URL must be set for this job")
     logging.info("PSQL_MQ_URL variable is set to '%s'", PSQL_MQ_URL)
     cutoff = datetime.utcnow() - timedelta(days=30)
+    PSQL_USER = os.environ.get("PSQL_MQ_USER")
+    PSQL_PASS = os.environ.get("PSQL_MQ_PASSWORD") 
     try:
         conn = psycopg2.connect(
-            host=os.environ.get("PSQL_MQ_URL"),
-            user=os.environ.get("PSQL_MQ_USER"),
-            password=os.environ.get("PSQL_MQ_PASSWORD")
+            host=PSQL_URL,
+            user=PSQL_USER,
+            password=PSQL_PASS
         )
     except:
         raise ValueError("Unable to connect to the database")
