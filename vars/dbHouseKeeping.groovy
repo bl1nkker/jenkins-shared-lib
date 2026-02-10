@@ -25,7 +25,7 @@ def call() {
                 python3 -m venv venv
                 . venv/bin/activate
                 pip install -r requirements.txt
-                python3 -u clear_table.py
+                python3 clear_table.py
               '''
             }
           }
