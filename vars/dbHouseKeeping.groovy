@@ -19,18 +19,10 @@ def call() {
               usernameVariable: 'PSQL_MQ_USER',
               passwordVariable: 'PSQL_MQ_PASSWORD'
             ]]) {
-
-              sh '''
-                set -e
-
-                python -m venv .venv
-                . .venv/bin/activate
-
-                pip install --upgrade pip
-                pip install -r requirements.txt
-
-                python clear_table.py
-              '''
+              withPythonEnv("python3") {
+                sh 'pip install -r requirements.txt'
+                sh 'python clear_table.py'
+              }
             }
           }
         }
