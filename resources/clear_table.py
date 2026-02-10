@@ -18,8 +18,7 @@ if __name__ == "__main__":
             password=os.environ.get("PSQL_MQ_PASSWORD")
         )
     except:
-        logging.error("Unable to connect to the database")
-        return
+        raise ValueError("Unable to connect to the database")
     with conn:
         with conn.cursor() as cur:
             cur.execute("""
