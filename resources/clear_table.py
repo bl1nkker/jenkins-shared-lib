@@ -14,7 +14,7 @@ with conn:
     with conn.cursor() as cur:
         cur.execute("""
             DELETE FROM mq.queue_message
-            WHERE creation_date >= %s
+            WHERE creation_date <= %s
             RETURNING id
         """, (cutoff,))
         deleted = cur.rowcount
