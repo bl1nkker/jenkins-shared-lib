@@ -28,7 +28,7 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(level=logging.INFO)
     args = parse_args()
 
     cutoff = datetime.now(timezone.utc) - timedelta(days=30)
@@ -61,7 +61,7 @@ if __name__ == "__main__":
                         """,
                         (cutoff,),
                     )
-                    count = cur.fetchone()["cnt"]
+                    count = cur.fetchone()[0]
                     logging.info("%s records would be deleted from mq.queue_message", count)
                 else:
                     cur.execute(
