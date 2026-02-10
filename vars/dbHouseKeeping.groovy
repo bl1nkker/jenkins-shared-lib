@@ -23,7 +23,7 @@ def call() {
                 set -e
                 
                 python3 -m venv venv
-                source venv/bin/activate
+                . venv/bin/activate
                 pip install -r requirements.txt
                 python3 -u clear_table.py
               '''
