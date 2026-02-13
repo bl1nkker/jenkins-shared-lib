@@ -43,11 +43,8 @@ if __name__ == "__main__":
             continue
 
         logging.info("Branch to delete: %s/%s/%s", project, repo, branch_name)
-
         try:
-            if branch_name == "CD-4593":
-                logging.info("BANG %s/%s/%s", project, repo, branch_name)
-                client.delete_branch(project_key=project, repo_slug=repo, branch_name=branch_name)
+            client.delete_branch(project_key=project, repo_slug=repo, branch_name=branch_name)
             logging.info("Successfully deleted branch %s/%s/%s", project, repo, branch_name)
         except Exception as e:
             logging.error("Failed to delete branch %s/%s/%s: %s", project, repo, branch_name, e)

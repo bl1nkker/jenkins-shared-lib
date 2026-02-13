@@ -41,8 +41,6 @@ class BitbucketAPIClient():
 
         for project_name in self.TARGET_PROJECT_NAMES:
             url = posixpath.join(self.baseurl, self.Constants.API_V1_PROJECTS.value.format(project_name))
-
-            logging.debug("Requesting project by name: %s", project_name)
             res = self.session.get(url)
 
             try:

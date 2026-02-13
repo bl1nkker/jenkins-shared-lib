@@ -11,7 +11,7 @@ if __name__ == "__main__":
     git_password = get_env("GIT_PASSWORD")
 
     client = BitbucketAPIClient(baseurl=git_url, username=git_user, password=git_password)
-    # TODO: Add comment here
+
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=30)).date()
 
     project_keys = client.list_project_keys()
@@ -19,11 +19,10 @@ if __name__ == "__main__":
     for project in project_keys:
         repo_slugs = client.list_repository_slugs(project_key=project)
         for repo in repo_slugs:
-            if repo == 'ci-cd-infra-shared-pipeline-libraries':
-                branches = client.list_branches(repo_slug=repo, project_key=project)
-                for branch_name, branch_commit in branches.items():
-                    if client.check_branch_stale(project_key=project, repo_slug=repo, branch_name=branch_name, commit_hash=branch_commit, cutoff_date=cutoff_date):
-                        stale_branches.append({"project": project, "repository": repo, "branch": branch_name, "commit": branch_commit})
+            branches = client.list_branches(repo_slug=repo, project_key=project)
+            for branch_name, branch_commit in branches.items():
+                if client.check_branch_stale(project_key=project, repo_slug=repo, branch_name=branch_name, commit_hash=branch_commit, cutoff_date=cutoff_date):
+                    stale_branches.append({"project": project, "repository": repo, "branch": branch_name, "commit": branch_commit})
 
     output_file = "stale_branches.json"
 
