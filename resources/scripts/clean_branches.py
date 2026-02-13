@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 
 urllib3.disable_warnings()
 
+# TODO: Refactor this code
 class BitbucketAPIClient():
     def __init__(self, baseurl: str, username: str, password: str):
         self.session = requests.session()
@@ -19,19 +20,20 @@ class BitbucketAPIClient():
         self.session.headers = {'Content-Type': 'application/json'}
         self.session.verify = False
 
+    TARGET_PROJECT_NAMES = ['CDT Infrastructure']
+    # TODO: Some repositories must contain main or not contain staging branch
+    PROTECTED_BRANCHES = ['master', 'staging', 'main']
+
     class Constants(enum.Enum):
         API_V1_PROJECTS = 'rest/api/1.0/projects?name={}'
         API_V1_REPOSITORIES = 'rest/api/1.0/projects/{}/repos?start={}'
         API_V1_BRANCHES = 'rest/api/1.0/projects/{}/repos/{}/branches?start={}'
         API_V1_COMMITS = 'rest/api/1.0/projects/{}/repos/{}/commits/{}'
         API_V1_COMPARE_BRANCHES = 'rest/api/1.0/projects/{}/repos/{}/compare/commits?from={}&to={}'
-    # TODO: Get a better name
-    PROJECT_NAMES = ['CDT Infrastructure']
-    PREMIUM_BRANCHES = ['master', 'staging']
 
     def list_project_keys(self) -> list[str]:
         project_keys = []
-        for project_name in self.PROJECT_NAMES:
+        for project_name in self.TARGET_PROJECT_NAMES:
             res = self.session.get(posixpath.join(self.baseurl, self.Constants.API_V1_PROJECTS.value.format(project_name)))
             try:
                 res.raise_for_status()
@@ -78,7 +80,7 @@ class BitbucketAPIClient():
             data = res.json()
             for element in data['values']:
                 # if branch is not default and not staging or master, then we can try to kill it
-                if not element["isDefault"] and element["displayId"] not in self.PREMIUM_BRANCHES:
+                if not element["isDefault"] and element["displayId"] not in self.PROTECTED_BRANCHES:
                     branches[element["displayId"]] = element["latestCommit"]
             if data['isLastPage']:
                 break
@@ -87,23 +89,26 @@ class BitbucketAPIClient():
 
 
     def _is_branch_stale(self, project_key: str, repo_slug: str, commit_hash: str, cutoff_date, branch_name) -> bool:
-        
-        for m_branch in self.PREMIUM_BRANCHES:
-            res = self.session.get(posixpath.join(self.baseurl, self.Constants.API_V1_COMPARE_BRANCHES.value.format(project_key, repo_slug, branch_name, m_branch)))
+        for protected_branch in self.PROTECTED_BRANCHES:
+            res = self.session.get(posixpath.join(self.baseurl, self.Constants.API_V1_COMPARE_BRANCHES.value.format(project_key, repo_slug, branch_name, protected_branch)))
+            if res.status_code == 404:
+                # TODO: Delete this log
+                logging.info("Protected branch %s does not exist in %s/%s. Skipping.", protected_branch, project_key, repo_slug)
+                continue
             try:
                 res.raise_for_status()
             except requests.exceptions.HTTPError as err:
-                # if some shit happens -> just mark the branch as active
-                logging.error("Unable to fetch branch info, error: %s", err)
-                return False
+                # TODO: Delete this log
+                logging.error("Unable to fetch branch info: %s", err)
+                continue
             data = res.json()
             # if it is 0, then it can be deleted, if it is not, then it must not be deleted
-            if data['size'] == 0:
-                logging.info("Branch %s is already merged into %s", branch_name, m_branch)
+            if data.get('size', 0) == 0:
+                # TODO: Delete this log
+                logging.info("Branch %s is already merged into %s", branch_name, protected_branch)
                 return True
 
         logging.info("Branch %s seems active", branch_name)
-
         # check if commit.committerTimestamp is valid
         res = self.session.get(posixpath.join(self.baseurl, self.Constants.API_V1_COMMITS.value.format(project_key, repo_slug, commit_hash)))
         try:
