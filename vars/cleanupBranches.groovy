@@ -15,12 +15,44 @@ def call(){
     }
 
     stages {
+
+      stage("Collect branches to delete"){
+        steps {
+          script {
+              // TODO: Change filenames
+              def pyScript = libraryResource('scripts/collect_branches.py')
+              def utilsScript = libraryResource('scripts/utils.py')
+              def requirements = libraryResource('requirements.txt')
+              writeFile file: 'collect_branches.py', text: pyScript
+              writeFile file: 'utils.py', text: utilsScript
+              writeFile file: 'requirements.txt', text: requirements
+
+              withCredentials([[
+                $class: 'UsernamePasswordMultiBinding',
+                credentialsId: 'GIT',
+                usernameVariable: 'GIT_USER',
+                passwordVariable: 'GIT_PASSWORD'
+              ]]) {
+              sh """
+                set -e
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+                python3 collect_branches.py
+              """
+            }
+            echo "Collect job finished successfully"
+          }
+        }
+      }
       stage("Cleanup Branched") {
         steps {
           script {
             def pyScript = libraryResource('scripts/clean_branches.py')
+            def utilsScript = libraryResource('scripts/utils.py')
             def requirements = libraryResource('requirements.txt')
             writeFile file: 'clean_branches.py', text: pyScript
+            writeFile file: 'utils.py', text: utilsScript
             writeFile file: 'requirements.txt', text: requirements
 
             withCredentials([[

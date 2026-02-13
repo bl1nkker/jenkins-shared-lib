@@ -13,3 +13,6 @@
 hs_err_pid*
 .dccache
 *~
+
+__pycache__
+*.json
