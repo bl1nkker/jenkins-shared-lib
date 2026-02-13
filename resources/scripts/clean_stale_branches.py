@@ -44,7 +44,9 @@ if __name__ == "__main__":
 
         logging.info("Branch to delete: %s/%s/%s", project, repo, branch_name)
         try:
-            client.delete_branch(project_key=project, repo_slug=repo, branch_name=branch_name)
+            if repo == "ci-cd-infra-shared-pipeline-libraries" and branch_name == "CD-4527":
+                logging.info("Definetely deleted branch %s/%s/%s", project, repo, branch_name)
+                client.delete_branch(project_key=project, repo_slug=repo, branch_name=branch_name)
             logging.info("Successfully deleted branch %s/%s/%s", project, repo, branch_name)
         except Exception as e:
             logging.error("Failed to delete branch %s/%s/%s: %s", project, repo, branch_name, e)
