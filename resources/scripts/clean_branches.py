@@ -17,12 +17,9 @@ def parse_args():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
-
-    logging.info("DRY_RUN: %s", args.dry_run)
     git_url = get_env("GIT_URL")
     git_user = get_env("GIT_USER")
     git_password = get_env("GIT_PASSWORD")
-    logging.info("Got GIT_URL: %s", git_url)
 
     client = BitbucketAPIClient(baseurl=git_url, username=git_user, password=git_password)
 
