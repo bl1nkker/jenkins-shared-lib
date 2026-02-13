@@ -42,11 +42,11 @@ if __name__ == "__main__":
             logging.info("DRY_RUN enabled. Branch to delete: %s/%s/%s", project, repo, branch_name)
             continue
 
-        logging.info("Branch to delete: %s/%s/%s", project, repo, branch_name)
-        try:
-            if repo == "ci-cd-infra-shared-pipeline-libraries" and branch_name == "CD-4527":
+        if repo == "ci-cd-infra-shared-pipeline-libraries" and branch_name == "CD-4527":
+            logging.info("Branch to delete: %s/%s/%s", project, repo, branch_name)
+            try:
                 logging.info("Definetely deleted branch %s/%s/%s", project, repo, branch_name)
                 client.delete_branch(project_key=project, repo_slug=repo, branch_name=branch_name)
-            logging.info("Successfully deleted branch %s/%s/%s", project, repo, branch_name)
-        except Exception as e:
-            logging.error("Failed to delete branch %s/%s/%s: %s", project, repo, branch_name, e)
+                logging.info("Successfully deleted branch %s/%s/%s", project, repo, branch_name)
+            except Exception as e:
+                logging.error("Failed to delete branch %s/%s/%s: %s", project, repo, branch_name, e)
