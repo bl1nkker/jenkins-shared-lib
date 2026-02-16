@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
-
 import os
-import sys
+import psycopg2
 import logging
 import argparse
 from datetime import datetime, timedelta, timezone
-
-import psycopg2
 
 
 def get_env(name: str) -> str:
@@ -17,9 +13,7 @@ def get_env(name: str) -> str:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Cleanup old records from mq.queue_message"
-    )
+    parser = argparse.ArgumentParser(description="Cleanup old records from mq.queue_message")
     parser.add_argument(
         "--dry-run",
         action="store_true"
@@ -34,7 +28,7 @@ if __name__ == "__main__":
     cutoff = datetime.now(timezone.utc) - timedelta(days=30)
 
     logging.info("DRY_RUN: %s", args.dry_run)
-    logging.info("Cutoff datetime (UTC): %s", cutoff.isoformat())
+    logging.info("Cutoff: %s", cutoff.isoformat())
 
     psql_host = get_env("PSQL_MQ_URL")
     psql_user = get_env("PSQL_MQ_USER")
@@ -73,11 +67,8 @@ if __name__ == "__main__":
                     )
                     deleted = cur.rowcount
                     logging.info("Deleted %s records from mq.queue_message", deleted)
-    except Exception:
-        raise Exception("Cleanup job failed, transaction will be rolled back")
+    except Exception as e:
+        raise Exception(f"Cleanup job failed {e}")
     finally:
         conn.close()
-        logging.info("Database connection closed")
-
     logging.info("Cleanup job finished successfully")
-

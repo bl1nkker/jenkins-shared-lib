@@ -3,7 +3,7 @@ def call() {
         agent { label 'master' }
 
         options {
-            buildDiscarder(logRotator(daysToKeepStr: '365', numToKeepStr: '1'))
+            buildDiscarder(logRotator(numToKeepStr: '20'))
             disableConcurrentBuilds()
             timestamps()
         }
@@ -12,7 +12,7 @@ def call() {
             booleanParam(
                 name: 'DRY_RUN',
                 defaultValue: true,
-                description: 'If true, script will not delete data from the table and only show what would be deleted'
+                description: 'If True, script will not delete data from the table and only show what would be deleted'
             )
         }
 
@@ -32,7 +32,7 @@ def call() {
 
                         withCredentials([[
                             $class: 'UsernamePasswordMultiBinding',
-                            credentialsId: 'PSQL',
+                            credentialsId: 'PSQL_MQ',
                             usernameVariable: 'PSQL_MQ_USER',
                             passwordVariable: 'PSQL_MQ_PASSWORD'
                         ]]) {
@@ -54,4 +54,3 @@ def call() {
         }
     }
 }
-
