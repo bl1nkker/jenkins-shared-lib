@@ -1,6 +1,6 @@
 def call(){
     pipeline{
-        agent {}
+        agent { label "agent-1" }
         options {
             buildDiscarder(logRotator(daysToKeepStr: '365', numToKeepStr: '64'))
         }
