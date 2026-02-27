@@ -70,7 +70,8 @@ def call(String useDockerfile = ''){
                         Boolean result
                         if (useDockerfile){
                             // TODO: Test with Dockerfile
-                            result = runDockerfileBuild(useDockerfile)
+                            // result = runDockerfileBuild(useDockerfile)
+                            echo "TODO: IMPLEMENT THIS"
                         } else {
                             result = runDockerComposeBuild()
                         }
@@ -84,20 +85,18 @@ def call(String useDockerfile = ''){
                 steps {
                     script {
                         if (params.DOCKER_RUN_PUSH){
-                            Boolean result = runDockerComposePush()
-                            if (!result){
-                                error('Docker build failure')
+                            if (useDockerfile){
+                                echo "TODO: IMPLEMENT THIS"
+                            } else{
+                                Boolean result = runDockerComposePush()
+                                if (!result){
+                                    error('Docker push failure')
+                                }
+                                Boolean result2 = runDockerComposeRetagPush()
+                                if (!result2){
+                                    error('Docker retag and build failure')
+                                }
                             }
-                            sh """
-                                for img in \$(docker-compose config --images); do
-                                    IMAGE_NAME=\$(echo "\$img" | cut -d':' -f1)
-                                    for t in ${env.PROMO_TAGS}; do
-                                        echo "Retagging \$img to \${IMAGE_NAME}:\$t"
-                                        docker tag "\$img" "\${IMAGE_NAME}:\$t"
-                                        docker push "\${IMAGE_NAME}:\$t"
-                                    done
-                                done
-                            """
                         } else{
                             echo "DOCKER_RUN_PUSH is set to false, skipping service "
                         }
