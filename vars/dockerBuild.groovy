@@ -1,4 +1,4 @@
-def call(){
+def call(String useDockerfile = ''){
     pipeline{
         agent { label "agent-1" }
         options {
@@ -30,7 +30,6 @@ def call(){
             }
             stage("Docker registry login"){
                 steps{
-                    // docker login
                     echo "==> Using credentials ID: DOCKER"
                     withCredentials([
                         usernamePassword(
@@ -68,20 +67,16 @@ def call(){
             stage("Docker Build") {
                 steps {
                     script {
-                        String buildCommand = params.DOCKER_USE_CACHE ? 'docker-compose build' : 'docker-compose build --no-cache'
-                        String pushCommand = params.DOCKER_RUN_PUSH   ? 'docker-compose push'  : 'echo "DOCKER_RUN_PUSH is set to false, skipping service "'
-                        sh """
-                            source /etc/profile >/dev/null 2>&1
-                            docker-compose pull --ignore-pull-failures -q --include-deps
-                            for p in \$(docker-compose config --services); do
-                                echo ">>> running ${buildCommand} for \$p"
-                                if ! ${buildCommand} "\$p"; then
-                                    echo "ERROR Failed to build \$p"
-                                    exit 1
-                                fi
-                                ${pushCommand} "\$p"
-                            done
-                        """
+                        Boolean result
+                        if (useDockerfile){
+                            // TODO: Test with Dockerfile
+                            result = runDockerfileBuild(useDockerfile)
+                        } else {
+                            result = runDockerComposeBuild()
+                        }
+                        if (!result){
+                            error('Docker build failure')
+                        }
                     }
                 }
             }
@@ -89,6 +84,10 @@ def call(){
                 steps {
                     script {
                         if (params.DOCKER_RUN_PUSH){
+                            Boolean result = runDockerComposePush()
+                            if (!result){
+                                error('Docker build failure')
+                            }
                             sh """
                                 for img in \$(docker-compose config --images); do
                                     IMAGE_NAME=\$(echo "\$img" | cut -d':' -f1)
@@ -156,7 +155,6 @@ def get_base_tag(){
     else if (env.GIT_REPOSITORY_BRANCH == "staging"){
         return "staging"
     } else {
-        // ? is there are anything more reliable?
         return sh(script: "git describe --tags", returnStdout: true).trim()
     }
 }

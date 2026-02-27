@@ -31,8 +31,8 @@ class BitbucketAPIClient():
         self.password = password
 
         self.session.auth = (self.username, self.password)
-        self.session.headers = {'Content-Type': 'application/json'}
-        self.session.verify = False
+        # self.session.headers = {'Content-Type': 'application/json'}
+        # self.session.verify = False
 
     def list_project_keys(self) -> list[str]:
         logging.info("Fetching project keys for target names: %s", self.TARGET_PROJECT_NAMES)
@@ -81,6 +81,8 @@ class BitbucketAPIClient():
                 return []
 
             data = res.json()
+            print(url)
+            print(data)
 
             for element in data['values']:
                 repo_slugs.append(element['slug'])
