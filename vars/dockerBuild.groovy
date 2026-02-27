@@ -1,4 +1,6 @@
 def call(String useDockerfile = ''){
+    String dockerfileBuildImageId
+    String dockerfileBuildContainerId
     pipeline{
         agent { label "agent-1" }
         options {
@@ -70,6 +72,10 @@ def call(String useDockerfile = ''){
                         Boolean result
                         if (useDockerfile){
                             result = runDockerfileBuild(useDockerfile)
+                            Map result = runDockerfileBuild(useDockerfile)
+                            (dockerfileBuildImageId, dockerfileBuildContainerId) =
+                                result.isSuccessful ? [result.layerId, ''] : ['', result.layerId]
+                            echo "Got isSuccessful=${result.isSuccessful}, dockerfileBuildImageId=${dockerfileBuildImageId}, dockerfileBuildContainerId=${dockerfileBuildContainerId}"
                         } else {
                             result = runDockerComposeBuild()
                         }
