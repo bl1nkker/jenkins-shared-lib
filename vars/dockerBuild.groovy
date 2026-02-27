@@ -90,7 +90,8 @@ def call(String useDockerfile = ''){
                         if (params.DOCKER_RUN_PUSH){
                             if (useDockerfile){
                                 // postPushInfraDockerImage(dockerfileBuildImageId, infraImageTagFromGitRepo())
-                                infraImageTagFromGitRepo()
+                                infraImageTagFromGitRepo(env.TAG)
+                                // TODO: For every tag in PROMO_TAGS (also lets change the naming) call infraImageTagFromGitRepo(curr_tag)
                             } else{
                                 Boolean result = runDockerComposePush()
                                 if (!result){

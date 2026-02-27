@@ -1,4 +1,4 @@
-String call() {
+String call(String tag) {
     // returning Docker image tag basing on Git repository name
     // Repository name format: <sub>-<name>
     // Result TAG format: ${DOCKER_REGISTRY_HOST}/<sub>/<name>:${BRANCH}
@@ -40,8 +40,7 @@ String call() {
         }
 
         // Assemble image tag
-        imageTag = [[env.DOCKER_REGISTRY_HOST, gitRepoSub, gitRepoRest].join('/'),
-                    env.GIT_REPOSITORY_BRANCH].join(':')
+        imageTag = [[env.DOCKER_REGISTRY_HOST, gitRepoSub, gitRepoRest].join('/'), tag].join(':')
         echo "--> Calculated image tag: ${imageTag}"
     } catch (Exception e) {
         echo "===> ERROR: unable to compose Docker image tag: ${e}"
