@@ -60,10 +60,12 @@ def call(){
                         }
                         env.PROMO_TAGS = get_promotion_tags(baseVersion).join(" ")
                         env.TAG = get_base_tag()
+                        echo "Determined BASE_TAG: ${env.TAG}"
+                        echo "Determined PROMO_TAGS: ${env.PROMO_TAGS}"
                     }
                 }
             }
-            stage("Docker Build base tag") {
+            stage("Docker Build") {
                 steps {
                     script {
                         String buildCommand = params.DOCKER_USE_CACHE ? 'docker-compose build' : 'docker-compose build --no-cache'
@@ -86,15 +88,20 @@ def call(){
             stage("Retag & Push") {
                 steps {
                     script {
-                        sh """
-                            for img in \$(docker-compose config --images); do
-                                IMAGE_NAME=\$(echo "\$img" | cut -d':' -f1)
-                                for t in ${env.PROMO_TAGS}; do
-                                    docker tag "\$img" "\${IMAGE_NAME}:\$t"
-                                    docker push "\${IMAGE_NAME}:\$t"
+                        if (params.DOCKER_RUN_PUSH){
+                            sh """
+                                for img in \$(docker-compose config --images); do
+                                    IMAGE_NAME=\$(echo "\$img" | cut -d':' -f1)
+                                    for t in ${env.PROMO_TAGS}; do
+                                        echo "Retagging \$img to \${IMAGE_NAME}:\$t"
+                                        docker tag "\$img" "\${IMAGE_NAME}:\$t"
+                                        docker push "\${IMAGE_NAME}:\$t"
+                                    done
                                 done
-                            done
-                        """
+                            """
+                        } else{
+                            echo "DOCKER_RUN_PUSH is set to false, skipping service "
+                        }
                     }
                 }
             }
