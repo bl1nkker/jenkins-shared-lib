@@ -89,7 +89,8 @@ def call(String useDockerfile = ''){
                     script {
                         if (params.DOCKER_RUN_PUSH){
                             if (useDockerfile){
-                                echo "TODO: IMPLEMENT THIS"
+                                // postPushInfraDockerImage(dockerfileBuildImageId, infraImageTagFromGitRepo())
+                                infraImageTagFromGitRepo()
                             } else{
                                 Boolean result = runDockerComposePush()
                                 if (!result){
