@@ -71,16 +71,15 @@ def call(String useDockerfile = ''){
                     script {
                         Boolean result
                         if (useDockerfile){
-                            result = runDockerfileBuild(useDockerfile)
-                            Map result = runDockerfileBuild(useDockerfile)
+                            Map res = runDockerfileBuild(useDockerfile)
                             (dockerfileBuildImageId, dockerfileBuildContainerId) =
-                                result.isSuccessful ? [result.layerId, ''] : ['', result.layerId]
-                            echo "Got isSuccessful=${result.isSuccessful}, dockerfileBuildImageId=${dockerfileBuildImageId}, dockerfileBuildContainerId=${dockerfileBuildContainerId}"
+                                res.isSuccessful ? [res.layerId, ''] : ['', res.layerId]
+                            echo "Got isSuccessful=${res.isSuccessful}, dockerfileBuildImageId=${dockerfileBuildImageId}, dockerfileBuildContainerId=${dockerfileBuildContainerId}"
                         } else {
                             result = runDockerComposeBuild()
-                        }
-                        if (!result){
-                            error('Docker build failure')
+                            if (!result){
+                                error('Docker build failure')
+                            }
                         }
                     }
                 }
