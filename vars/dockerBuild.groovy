@@ -69,9 +69,7 @@ def call(String useDockerfile = ''){
                     script {
                         Boolean result
                         if (useDockerfile){
-                            // TODO: Test with Dockerfile
-                            // result = runDockerfileBuild(useDockerfile)
-                            echo "TODO: IMPLEMENT THIS"
+                            result = runDockerfileBuild(useDockerfile)
                         } else {
                             result = runDockerComposeBuild()
                         }
