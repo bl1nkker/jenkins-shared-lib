@@ -8,7 +8,6 @@ def call(String imageTag) {
     for img in \$(docker-compose config --images); do
         IMAGE_NAME=\$(echo "\$img" | cut -d':' -f1)
         NEW_TAG="\${IMAGE_NAME}:${imageTag}"
-        echo "Tagging \$img -> \$NEW_TAG"
         docker tag "\$img" "\$NEW_TAG"
         echo "\$NEW_TAG"
     done
