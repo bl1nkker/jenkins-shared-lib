@@ -92,12 +92,12 @@ def call(String useDockerfile = ''){
                         // PROMOTE IMAGES
                         List images = []
                         if (useDockerfile){
-                            for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
+                            for (tag in ([env.TAG] + env.PROMO_TAGS.split(" "))) {
                                 def imageTag = infraImageTagFromGitRepo(tag)
                                 images = images + promoteDockerfileImage(dockerfileBuildImageId, imageTag)
                             }
                             } else{
-                            for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
+                            for (tag in ([env.TAG] + env.PROMO_TAGS.split(" "))) {
                                 images = images + promoteDockerComposeImages(tag)
                             }
                         }
