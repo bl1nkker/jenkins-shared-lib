@@ -1,5 +1,4 @@
 def call(String imageTag) {
-    error("-->ERROR: no Image TAG")
     if (!imageTag) {
         error("-->ERROR: no Image TAG")
     }

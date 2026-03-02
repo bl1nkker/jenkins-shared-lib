@@ -87,12 +87,8 @@ def call(String useDockerfile = ''){
             stage("Promote & Publish Images") {
                 steps {
                     script {
-                        // promote all images
-                        // if DOCKER_RUN_PUSH => push images
-                        // PROMOTE IMAGES
                         List images = []
                         def tags = [env.TAG] + PROMO_TAGS.tokenize(" ")
-                        echo "tags: $tags"
                         if (useDockerfile){
                             for (tag in tags) {
                                 def imageTag = infraImageTagFromGitRepo(tag)
