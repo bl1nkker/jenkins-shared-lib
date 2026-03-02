@@ -1,7 +1,7 @@
 def call(String imageTag) {
+    error("-->ERROR: no Image TAG")
     if (!imageTag) {
-        echo "-->ERROR: no Image TAG"
-        return []
+        error("-->ERROR: no Image TAG")
     }
     def images = []
     def scriptContent = """
