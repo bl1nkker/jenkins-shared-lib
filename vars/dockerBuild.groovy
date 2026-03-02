@@ -84,43 +84,31 @@ def call(String useDockerfile = ''){
                     }
                 }
             }
-            stage("Retag & Push") {
+            stage("Promote & Publish Images") {
                 steps {
                     script {
+                        // promote all images
+                        // if DOCKER_RUN_PUSH => push images
+                        // PROMOTE IMAGES
+                        List images = []
+                        if (useDockerfile){
+                        for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
+                            def imageTag = infraImageTagFromGitRepo(tag)
+                            images = images + promoteDockerfileImage(dockerfileBuildImageId, imageTag)
+                        }
+                        } else{
+                        for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
+                            images = images + promoteDockerComposeImages(tag)
+                        }
+                        }
                         if (params.DOCKER_RUN_PUSH){
-                            if (useDockerfile){
-                                // postPushInfraDockerImage(dockerfileBuildImageId, infraImageTagFromGitRepo())
-                                infraImageTagFromGitRepo(env.TAG)
-                                // TODO: For every tag in PROMO_TAGS (also lets change the naming) call infraImageTagFromGitRepo(curr_tag)
-                                for (tag in PROMO_TAGS.split(" ")){
-                                    infraImageTagFromGitRepo(tag)
-                                }
-                            } else{
-                                Boolean result = runDockerComposePush()
-                                if (!result){
-                                    error('Docker push failure')
-                                }
-                                Boolean result2 = runDockerComposeRetagPush()
-                                if (!result2){
-                                    error('Docker retag and build failure')
-                                }
+                            echo "DOCKER_RUN_PUSH is set to true, publishing images"
+                            for (img in images){
+                                publishDockerImage(img)
                             }
                         } else{
-                            echo "DOCKER_RUN_PUSH is set to false, skipping service "
+                            echo "DOCKER_RUN_PUSH is set to false, skipping service"
                         }
-                    }
-                }
-            }
-            stage("Cleanup") {
-                steps {
-                    script {
-                        // todo: this also must delete promoted tags
-                        sh """
-                            for p in \$(docker-compose config | grep 'image:' | awk -F \\: '{ print \$2 }'); do
-                                i=\$(docker images -q \$p)
-                                [[ -n \$i ]] && docker rmi \$i --force
-                            done
-                        """
                     }
                 }
             }
