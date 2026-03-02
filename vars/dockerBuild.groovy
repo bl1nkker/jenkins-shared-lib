@@ -92,15 +92,16 @@ def call(String useDockerfile = ''){
                         // PROMOTE IMAGES
                         List images = []
                         if (useDockerfile){
-                        for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
-                            def imageTag = infraImageTagFromGitRepo(tag)
-                            images = images + promoteDockerfileImage(dockerfileBuildImageId, imageTag)
+                            for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
+                                def imageTag = infraImageTagFromGitRepo(tag)
+                                images = images + promoteDockerfileImage(dockerfileBuildImageId, imageTag)
+                            }
+                            } else{
+                            for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
+                                images = images + promoteDockerComposeImages(tag)
+                            }
                         }
-                        } else{
-                        for (tag in ([env.TAG] + PROMO_TAGS.split(" "))) {
-                            images = images + promoteDockerComposeImages(tag)
-                        }
-                        }
+                        echo "images: $images"
                         if (params.DOCKER_RUN_PUSH){
                             echo "DOCKER_RUN_PUSH is set to true, publishing images"
                             for (img in images){
