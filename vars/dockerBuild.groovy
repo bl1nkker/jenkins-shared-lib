@@ -91,13 +91,15 @@ def call(String useDockerfile = ''){
                         // if DOCKER_RUN_PUSH => push images
                         // PROMOTE IMAGES
                         List images = []
+                        def tags = [env.TAG] + PROMO_TAGS.tokenize(" ")
+                        echo "tags: $tags"
                         if (useDockerfile){
-                            for (tag in ([env.TAG] + env.PROMO_TAGS.split(" "))) {
+                            for (tag in tags) {
                                 def imageTag = infraImageTagFromGitRepo(tag)
                                 images = images + promoteDockerfileImage(dockerfileBuildImageId, imageTag)
                             }
                             } else{
-                            for (tag in ([env.TAG] + env.PROMO_TAGS.split(" "))) {
+                            for (tag in tags) {
                                 images = images + promoteDockerComposeImages(tag)
                             }
                         }
