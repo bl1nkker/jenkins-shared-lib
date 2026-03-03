@@ -134,33 +134,35 @@ def call(String useDockerfile = ''){
               }
 
               steps {
-                if (useDockerfile){
-                  def prevImageTag = infraImageTagFromGitRepo(env.TAG)
-                  echo "Pulling Dockerfile image: ${prevImageTag}"
-                  def status = sh(script: "docker pull ${prevImageTag}", returnStatus: true)
-                  if (status != 0) {
-                      error("Failed to pull Dockerfile image: ${prevImageTag}")
-                  }
-                  dockerfileBuildImageId = sh(script: "docker images -q ${prevImageTag}", returnStdout: true).trim()
-                  if (!dockerfileBuildImageId) {
-                      error("Dockerfile image ID not found for ${prevImageTag}")
-                  }
-                  echo "Dockerfile image ID found: ${dockerfileBuildImageId}"
-                } else {
-                    echo "Pulling Docker Compose images..."
-                    def status = sh(script: "docker-compose pull", returnStatus: true)
+                script {
+                  if (useDockerfile){
+                    def prevImageTag = infraImageTagFromGitRepo(env.TAG)
+                    echo "Pulling Dockerfile image: ${prevImageTag}"
+                    def status = sh(script: "docker pull ${prevImageTag}", returnStatus: true)
                     if (status != 0) {
-                        error("Failed to pull Docker Compose images")
+                        error("Failed to pull Dockerfile image: ${prevImageTag}")
                     }
-                    def images = sh(script: "docker-compose config --images", returnStdout: true).trim().split("\n")
-                    for (img in images) {
-                        def exists = sh(script: "docker images -q ${img}", returnStdout: true).trim()
-                        if (!exists) {
-                            error("Image ${img} is missing after pull")
-                        } else {
-                            echo "Verified image: ${img}"
-                        }
+                    dockerfileBuildImageId = sh(script: "docker images -q ${prevImageTag}", returnStdout: true).trim()
+                    if (!dockerfileBuildImageId) {
+                        error("Dockerfile image ID not found for ${prevImageTag}")
                     }
+                    echo "Dockerfile image ID found: ${dockerfileBuildImageId}"
+                  } else {
+                      echo "Pulling Docker Compose images..."
+                      def status = sh(script: "docker-compose pull", returnStatus: true)
+                      if (status != 0) {
+                          error("Failed to pull Docker Compose images")
+                      }
+                      def images = sh(script: "docker-compose config --images", returnStdout: true).trim().split("\n")
+                      for (img in images) {
+                          def exists = sh(script: "docker images -q ${img}", returnStdout: true).trim()
+                          if (!exists) {
+                              error("Image ${img} is missing after pull")
+                          } else {
+                              echo "Verified image: ${img}"
+                          }
+                      }
+                  }
                 }
               }
             }
