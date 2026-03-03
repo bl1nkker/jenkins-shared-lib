@@ -59,38 +59,20 @@ def call(String useDockerfile = ''){
                     }
                 }
             }
-            stage("Resolve Release Version for non-master branch") {
-              when {
-                not {
-                  environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
-                }
-              }
+            stage("Resolve Release Version") {
               steps {
                 script {
                   // The current git tag is selected as the current version (ex. "1.0.1")
                   currentVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
-                  env.TAG = resolveBaseTag()
+                  env.TAG = resolveBaseTag(currentVersion)
                   echo "Got base tag: ${env.TAG}"
-                  env.PROMO_TAGS = generatePromotionTags(currentVersion).join(" ")
-                  echo "Got promotion tags: ${env.PROMO_TAGS}"
-                }
-              }
-            }
-            stage("Resolve Release Version for master branch") {
-              when {
-                environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
-              }
-              
-              steps {
-                script {
-                  // If the build is started for the master branch, a new tag will be created and pushed to the git repository
-                  currentVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
-                  newVersion = incrementPatchVersion(currentVersion)
-                  // TODO: add comment here why we use this for master branch
-                  env.TAG = currentVersion + "-staging"
-                  echo "Got base tag: ${env.TAG}"
-                  env.PROMO_TAGS = generatePromotionTags(newVersion).join(" ")
-                  echo "Got promotion tags: ${env.PROMO_TAGS}"
+                  if (env.GIT_REPOSITORY_BRANCH == "master"){
+                    newVersion = incrementPatchVersion(currentVersion)
+                    env.PUBLISH_TAGS = resolvePublishTags(newVersion).join(" ")
+                  } else {
+                    env.PUBLISH_TAGS = resolvePublishTags(currentVersion).join(" ")
+                  }
+                  echo "Got tags to publish: ${env.PUBLISH_TAGS}"
                 }
               }
             }
@@ -183,14 +165,13 @@ def call(String useDockerfile = ''){
               steps {
                 script {
                   List images = []
-                  def tags = [env.TAG] + PROMO_TAGS.tokenize(" ")
                   if (useDockerfile){
-                    for (tag in tags) {
+                    for (tag in env.PUBLISH_TAGS) {
                       def image = promoteDockerfileImage(dockerfileBuildImageId, infraImageTagFromGitRepo(tag))
                       images.add(image)
                     }
                   } else{
-                    for (tag in tags) {
+                    for (tag in env.PUBLISH_TAGS) {
                       images = images + promoteDockerComposeImages(tag)
                     }
                   }
@@ -238,25 +219,26 @@ def incrementPatchVersion(version) {
     return newVersion
 }
 
-def generatePromotionTags(version){
+def resolvePublishTags(version){
     if (env.GIT_REPOSITORY_BRANCH == "master"){
         return [version]
     }
     else if (env.GIT_REPOSITORY_BRANCH == "staging"){
         return ["${version}-staging", "${version}-staging.${env.BUILD_NUMBER}"]
     } else {
-        return []
+        return [sh(script: "git describe --tags", returnStdout: true).trim()]
     }
 
 }
 
-def resolveBaseTag(){
-    if (env.GIT_REPOSITORY_BRANCH == "master"){
-        return "master"
-    }
-    else if (env.GIT_REPOSITORY_BRANCH == "staging"){
-        return "staging"
-    } else {
-        return sh(script: "git describe --tags", returnStdout: true).trim()
-    }
+def resolveBaseTag(version){
+  // old fashion. do we actually need this?
+  if (env.GIT_REPOSITORY_BRANCH == "master"){
+      return "${version}-staging"
+  }
+  else if (env.GIT_REPOSITORY_BRANCH == "staging"){
+      return "${version}-staging"
+  } else {
+      return sh(script: "git describe --tags", returnStdout: true).trim()
+  }
 }
