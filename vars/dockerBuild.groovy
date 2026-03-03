@@ -196,7 +196,7 @@ def call(String useDockerfile = ''){
         post { 
           success {
             script {
-              if (env.GIT_REPOSITORY_BRANCH == 'master'){
+              if (env.GIT_REPOSITORY_BRANCH == 'master' && params.DOCKER_RUN_PUSH){
                 echo "About to bump git tag from ${currentVersion} to ${newVersion} and push to repository"
                 sh """
                     git tag -a ${newVersion} -m "Release ${newVersion}" HEAD
