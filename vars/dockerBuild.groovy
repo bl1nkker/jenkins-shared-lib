@@ -165,7 +165,7 @@ def call(String useDockerfile = ''){
               steps {
                 script {
                   List images = []
-                  def tags = env.PUBLISH_TAGS
+                  def tags = env.PUBLISH_TAGS.tokenize(" ")
                   if (useDockerfile){
                     for (tag in tags) {
                       def image = promoteDockerfileImage(dockerfileBuildImageId, infraImageTagFromGitRepo(tag))
