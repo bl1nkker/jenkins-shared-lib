@@ -1,6 +1,7 @@
 def call(String useDockerfile = ''){
     String dockerfileBuildImageId
     String dockerfileBuildContainerId
+    Boolean skipBuildCompletely = false
     pipeline{
         agent { label "agent-1" }
         options {
