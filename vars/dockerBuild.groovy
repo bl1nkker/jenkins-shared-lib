@@ -18,14 +18,25 @@ def call(String useDockerfile = ''){
                             $class: 'GitSCM',
                             branches: [[name: "refs/heads/${env.GIT_REPOSITORY_BRANCH}"]],
                             doGenerateSubmoduleConfigurations: false,
-                            extensions: [[
+                            extensions: [
+                              [
                                 $class: 'SubmoduleOption',
                                 disableSubmodules: false,
                                 recursiveSubmodules: true,
                                 parentCredentials: true,
                                 shallow: true,
                                 trackingSubmodules: false
-                            ]],
+                              ],
+                              // TODO: Test cases when tags already created
+                              // [
+                              //     $class: 'CloneOption',
+                              //     shallow: true,
+                              //     noTags: false,      // <-- важно: разрешить теги
+                              //     depth: 0,           // 0 = без ограничения истории
+                              //     reference: '',
+                              //     timeout: 10
+                              // ],
+                            ],
                             userRemoteConfigs: [[
                                 credentialsId: 'GITHUB',
                                 url: "${env.GIT_REPOSITORY_URL}"
@@ -78,7 +89,7 @@ def call(String useDockerfile = ''){
                   // TODO: add comment here why we use this for master branch
                   env.TAG = currentVersion + "-staging"
                   echo "Got base tag: ${env.TAG}"
-                  env.PROMO_TAGS = generatePromotionTags(currentVersion).join(" ")
+                  env.PROMO_TAGS = generatePromotionTags(newVersion).join(" ")
                   echo "Got promotion tags: ${env.PROMO_TAGS}"
                 }
               }
@@ -154,8 +165,11 @@ def call(String useDockerfile = ''){
                       }
                       def images = sh(script: "docker-compose config --images", returnStdout: true).trim().split("\n")
                       for (img in images) {
-                          def exists = sh(script: "docker images -q ${img}", returnStdout: true).trim()
-                          if (!exists) {
+                          def exists = sh(
+                              script: "docker image inspect ${img} > /dev/null 2>&1",
+                              returnStatus: true
+                          )
+                          if (exists != 0) {
                               error("Image ${img} is missing after pull")
                           } else {
                               echo "Verified image: ${img}"
