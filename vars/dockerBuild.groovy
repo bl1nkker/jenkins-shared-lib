@@ -76,7 +76,6 @@ def call(String useDockerfile = ''){
                       git tag -a ${newVersion} -m "Release ${newVersion}" HEAD
                       git push origin ${newVersion}
                   """
-                  def currentVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
                   // TODO: add comment here why we use this for master branch
                   env.TAG = currentVersion + "-staging"
                   echo "Got base tag: ${env.TAG}"
