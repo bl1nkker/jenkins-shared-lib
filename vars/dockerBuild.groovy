@@ -165,13 +165,14 @@ def call(String useDockerfile = ''){
               steps {
                 script {
                   List images = []
+                  def tags = env.PUBLISH_TAGS
                   if (useDockerfile){
-                    for (tag in env.PUBLISH_TAGS) {
+                    for (tag in tags) {
                       def image = promoteDockerfileImage(dockerfileBuildImageId, infraImageTagFromGitRepo(tag))
                       images.add(image)
                     }
                   } else{
-                    for (tag in env.PUBLISH_TAGS) {
+                    for (tag in tags) {
                       images = images + promoteDockerComposeImages(tag)
                     }
                   }
