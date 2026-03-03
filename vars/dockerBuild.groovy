@@ -1,6 +1,9 @@
 def call(String useDockerfile = ''){
     String dockerfileBuildImageId
     String dockerfileBuildContainerId
+    // TODO: Find better names
+    String currentVersion
+    String newVersion
     Boolean skipBuildCompletely = false
     pipeline{
         agent { label "agent-1" }
@@ -54,7 +57,7 @@ def call(String useDockerfile = ''){
               steps {
                 script {
                   // The current git tag is selected as the current version (ex. "1.0.1")
-                  def currentVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
+                  currentVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
                   env.TAG = resolveBaseTag()
                   echo "Got base tag: ${env.TAG}"
                   env.PROMO_TAGS = generatePromotionTags(currentVersion).join(" ")
@@ -70,13 +73,8 @@ def call(String useDockerfile = ''){
               steps {
                 script {
                   // If the build is started for the master branch, a new tag will be created and pushed to the git repository
-                  def currentVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
-                  def newVersion = incrementPatchVersion(currentVersion)
-                  echo "About to bump git tag from ${currentVersion} to ${newVersion} and push to repository"
-                  sh """
-                      git tag -a ${newVersion} -m "Release ${newVersion}" HEAD
-                      git push origin ${newVersion}
-                  """
+                  currentVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
+                  newVersion = incrementPatchVersion(currentVersion)
                   // TODO: add comment here why we use this for master branch
                   env.TAG = currentVersion + "-staging"
                   echo "Got base tag: ${env.TAG}"
@@ -195,7 +193,20 @@ def call(String useDockerfile = ''){
               }
             }
         }
-    }
+        post { 
+          success {
+            script {
+              if (env.GIT_REPOSITORY_BRANCH == 'master'){
+                echo "About to bump git tag from ${currentVersion} to ${newVersion} and push to repository"
+                sh """
+                    git tag -a ${newVersion} -m "Release ${newVersion}" HEAD
+                    git push origin ${newVersion}
+                """
+              }
+            }
+          }
+        }
+      }
 }
 
 def incrementPatchVersion(version) {
