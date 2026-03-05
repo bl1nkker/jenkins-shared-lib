@@ -12,6 +12,7 @@ def call(String useDockerfile = ''){
     stages{
       stage("Git checkout"){
           steps{
+            // Clean workspace before we use it
             cleanWs()
             checkout(
                 [
@@ -208,6 +209,7 @@ def call(String useDockerfile = ''){
                 git tag -a ${releaseVersion} -m "Release ${releaseVersion}" HEAD
                 git push origin ${releaseVersion}
             """
+            addBadge (text: releaseVersion, cssClass: 'badge-text--background badge-text--bordered')
           }
         }
       }
