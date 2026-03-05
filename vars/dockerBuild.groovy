@@ -12,33 +12,34 @@ def call(String useDockerfile = ''){
     stages{
       stage("Git checkout"){
           steps{
-              checkout(
-                  [
-                      $class: 'GitSCM',
-                      branches: [[name: "refs/heads/${env.GIT_REPOSITORY_BRANCH}"]],
-                      doGenerateSubmoduleConfigurations: false,
-                      extensions: [
-                        [
-                          $class: 'SubmoduleOption',
-                          disableSubmodules: false,
-                          recursiveSubmodules: true,
-                          parentCredentials: true,
-                          shallow: true,
-                          trackingSubmodules: false
-                        ],
-                        [
-                            $class: 'CloneOption',
-                            shallow: false,
-                            noTags: false,
-                            reference: '',
-                        ],
+            cleanWs()
+            checkout(
+                [
+                    $class: 'GitSCM',
+                    branches: [[name: "refs/heads/${env.GIT_REPOSITORY_BRANCH}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                      [
+                        $class: 'SubmoduleOption',
+                        disableSubmodules: false,
+                        recursiveSubmodules: true,
+                        parentCredentials: true,
+                        shallow: true,
+                        trackingSubmodules: false
                       ],
-                      userRemoteConfigs: [[
-                          credentialsId: 'GITHUB',
-                          url: "${env.GIT_REPOSITORY_URL}"
-                      ]]
-                  ]
-              )
+                      [
+                          $class: 'CloneOption',
+                          shallow: false,
+                          noTags: false,
+                          reference: '',
+                      ],
+                    ],
+                    userRemoteConfigs: [[
+                        credentialsId: 'GITHUB',
+                        url: "${env.GIT_REPOSITORY_URL}"
+                    ]]
+                ]
+            )
           }
       }
       stage("Docker registry login"){
