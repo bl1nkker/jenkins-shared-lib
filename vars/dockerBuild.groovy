@@ -26,13 +26,7 @@ def call(String useDockerfile = ''){
                         parentCredentials: true,
                         shallow: true,
                         trackingSubmodules: false
-                      ],
-                      [
-                          $class: 'CloneOption',
-                          shallow: false,
-                          noTags: false,
-                          reference: '',
-                      ],
+                      ]
                     ],
                     userRemoteConfigs: [[
                         credentialsId: 'GITHUB',
