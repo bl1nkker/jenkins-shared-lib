@@ -26,15 +26,12 @@ def call(String useDockerfile = ''){
                           shallow: true,
                           trackingSubmodules: false
                         ],
-                        // TODO: Test cases when tags already created
-                        // [
-                        //     $class: 'CloneOption',
-                        //     shallow: true,
-                        //     noTags: false,      // <-- важно: разрешить теги
-                        //     depth: 0,           // 0 = без ограничения истории
-                        //     reference: '',
-                        //     timeout: 10
-                        // ],
+                        [
+                            $class: 'CloneOption',
+                            shallow: false,
+                            noTags: false,
+                            reference: '',
+                        ],
                       ],
                       userRemoteConfigs: [[
                           credentialsId: 'GITHUB',
