@@ -233,9 +233,10 @@ def call(String useDockerfile = ''){
         // but 'cleanup' surely run at last
         script {
             if (useDockerfile) {
-              // if (tempContainerId) {
-              sh("docker rm --force --volumes '${tempContainerId}' || true")
-              // }
+              if (dockerfileBuildImageId) {
+                // sh("docker rm --force --volumes '${tempContainerId}' || true")
+                sh("docker image rm '${dockerfileBuildImageId}' --force")
+              }
             } else {
               sh("docker-compose down --volumes || true")
               postCleanupDockerCompose()
