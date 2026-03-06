@@ -149,7 +149,7 @@ def call(String useDockerfile = ''){
                 if (status != 0) {
                     error("Failed to pull Docker Compose images")
                 }
-                def images = sh(script: "docker-compose config --images", returnStdout: true).trim().split("\n")
+                def images = sh(script: "docker-compose config | awk '/image:/ {print \$2}'", returnStdout: true).trim().split("\n")
                 for (img in images) {
                     def exists = sh(
                         script: "docker image inspect ${img} > /dev/null 2>&1",
@@ -205,10 +205,23 @@ def call(String useDockerfile = ''){
         script {
           if (env.GIT_REPOSITORY_BRANCH == 'master' && params.DOCKER_RUN_PUSH){
             echo "About to bump git tag from ${baseVersion} to ${releaseVersion} and push to repository"
-            sh """
+
+            withCredentials([
+              gitUsernamePassword(credentialsId: 'GITHUB', gitToolName: 'git-tool'),
+              [
+                $class: 'UsernamePasswordMultiBinding',
+                credentialsId: 'GITHUB',
+                usernameVariable: 'GIT_USER',
+                passwordVariable: 'GIT_PASS'
+              ]
+            ]) {
+              sh """
+                git config user.name "${GIT_USER}"
+                git config user.email "${GIT_USER}@openwaygroup.com"
                 git tag -a ${releaseVersion} -m "Release ${releaseVersion}" HEAD
-                git push origin ${releaseVersion}
-            """
+                git push origin --tags
+              """
+            }
             addBadge (text: releaseVersion, cssClass: 'badge-text--background badge-text--bordered')
           }
         }

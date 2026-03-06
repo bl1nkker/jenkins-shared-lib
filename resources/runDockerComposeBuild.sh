@@ -1,12 +1,9 @@
 #!/bin/bash
-set -e
 
+# set 'PATH' correctly since Jenkins provides a very shortened variant
 source /etc/profile >/dev/null 2>&1
-
 docker-compose pull --ignore-pull-failures -q --include-deps
-for p in $(docker-compose config --services); do
-    echo ">>> Building $p"
-    docker-compose build ${CACHE_ARGS} "$p"
-done
+# Depending on the DOCKER_USE_CACHE argument value, the build is performed either with or without Docker cache
+docker-compose build ${CACHE_ARGS}
 
 exit 0
