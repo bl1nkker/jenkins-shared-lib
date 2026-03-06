@@ -226,6 +226,22 @@ def call(String useDockerfile = ''){
           }
         }
       }
+      cleanup {
+        //// A.Knyazev, SII-13314
+        // all container/image destruction procedures moved here
+        // from other actions since post-build order is unpredictable
+        // but 'cleanup' surely run at last
+        script {
+            if (useDockerfile) {
+              // if (tempContainerId) {
+              sh("docker rm --force --volumes '${tempContainerId}' || true")
+              // }
+            } else {
+              sh("docker-compose down --volumes || true")
+              postCleanupDockerCompose()
+            }
+        }
+      }
     }
   }
 }
