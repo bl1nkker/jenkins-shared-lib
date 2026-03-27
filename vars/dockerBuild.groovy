@@ -58,7 +58,7 @@ def call(String useDockerfile = ''){
         steps {
           script {
             // The current git tag is selected as the current version (ex. "1.0.1")
-            baseVersion = sh(script: "git tag --sort=-v:refname | head -n 1", returnStdout: true).trim()
+            baseVersion = sh(script: "git describe --tags --abbrev=0", returnStdout: true).trim()
             echo "Latest git tag: ${baseVersion}"
             env.TAG = resolveBaseTag(baseVersion)
             echo "Resolved base Docker tag: ${env.TAG}"
@@ -206,6 +206,13 @@ def call(String useDockerfile = ''){
           if (env.GIT_REPOSITORY_BRANCH == 'master' && params.DOCKER_RUN_PUSH){
             echo "About to bump git tag from ${baseVersion} to ${releaseVersion} and push to repository"
 
+            def lastNonMergeCommit = sh(
+              script: "git rev-list --no-merges -n 1 HEAD",
+              returnStdout: true
+            ).trim()
+            echo "Last non-merge commit: ${lastNonMergeCommit}"
+
+
             withCredentials([
               gitUsernamePassword(credentialsId: 'GITHUB', gitToolName: 'git-tool'),
               [
@@ -218,8 +225,8 @@ def call(String useDockerfile = ''){
               sh """
                 git config user.name "${GIT_USER}"
                 git config user.email "${GIT_USER}@openwaygroup.com"
-                git tag -a ${releaseVersion} -m "Release ${releaseVersion}" HEAD
-                git push origin --tags
+                git tag -a ${releaseVersion} -m "Release ${releaseVersion}" ${lastNonMergeCommit}
+                git push origin ${releaseVersion}
               """
             }
             addBadge (text: releaseVersion, cssClass: 'badge-text--background badge-text--bordered')
