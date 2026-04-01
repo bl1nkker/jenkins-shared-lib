@@ -211,24 +211,21 @@ def call(String useDockerfile = ''){
               returnStdout: true
             ).trim()
             echo "Last non-merge commit: ${lastNonMergeCommit}"
-
-
-            withCredentials([
-              gitUsernamePassword(credentialsId: 'GITHUB', gitToolName: 'git-tool'),
-              [
-                $class: 'UsernamePasswordMultiBinding',
-                credentialsId: 'GITHUB',
-                usernameVariable: 'GIT_USER',
-                passwordVariable: 'GIT_PASS'
-              ]
-            ]) {
-              sh """
-                git config user.name "${GIT_USER}"
-                git config user.email "${GIT_USER}@openwaygroup.com"
-                git tag -a ${releaseVersion} -m "Release ${releaseVersion}" ${lastNonMergeCommit}
-                git push origin ${releaseVersion}
-              """
-            }
+            sshagent(['jenkins-credentials-ssh-github']) {
+              withCredentials([
+                usernamePassword(
+                  credentialsId: 'GIT',
+                  usernameVariable: 'GIT_USER',
+                  passwordVariable: 'GIT_PASS'
+                )
+              ]) {
+                sh """
+                    git config user.name "${GIT_USER}"
+                    git config user.email "${GIT_USER}@gmail.com"
+                    git tag -a ${releaseVersion} -m "Release ${releaseVersion}" ${lastNonMergeCommit}
+                    git push origin ${releaseVersion}
+                """
+              }
             addBadge (text: releaseVersion, cssClass: 'badge-text--background badge-text--bordered')
           }
         }
