@@ -30,7 +30,7 @@ def call(String useDockerfile = ''){
                       ]
                     ],
                     userRemoteConfigs: [[
-                        credentialsId: 'GITHUB',
+                        credentialsId: 'jenkins-credentials-ssh-github',
                         url: "${env.GIT_REPOSITORY_URL}"
                     ]]
                 ]
