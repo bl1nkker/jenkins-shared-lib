@@ -4,6 +4,7 @@ def call(String useDockerfile = ''){
     String baseVersion
     String releaseVersion
     Boolean skipBuildCompletely = false
+    Boolean isDirectHotfix = false
     pipeline{
       agent { label "agent-1" }
       options {
@@ -57,37 +58,70 @@ def call(String useDockerfile = ''){
         // - env.PUBLISH_TAGS - contains tags (there may be several) that must be published
         steps {
           script {
-            // The current git tag is selected as the current version (ex. "1.0.1")
             baseVersion = sh(script: "git describe --tags --abbrev=0", returnStdout: true).trim()
             echo "Latest git tag: ${baseVersion}"
             env.TAG = resolveBaseTag(baseVersion)
             echo "Resolved base Docker tag: ${env.TAG}"
-            if (env.GIT_REPOSITORY_BRANCH == "master"){
-              // If the current branch is master, we prepare an increased version for release in advance (for a new git tag and docker tag).
-              releaseVersion = incrementPatchVersion(baseVersion)
-              echo "Version bump: from ${baseVersion} to ${releaseVersion}"
+
+            if (env.GIT_REPOSITORY_BRANCH == "master") {
+              def lastMerge = sh(
+                script: "git log HEAD --first-parent --merges --oneline -1",
+                returnStdout: true
+              ).trim()
+              echo "Last merge into master: ${lastMerge}"
+
+              if (lastMerge.contains('Staging')) {
+                def stagingMerges = sh(
+                  script: "git log HEAD^1..HEAD^2 --merges --oneline",
+                  returnStdout: true
+                ).trim().split('\n').findAll { it }
+
+                def hasFeature = stagingMerges.any { it.contains('feature/') }
+                isDirectHotfix = false
+                releaseVersion = hasFeature ? incrementMinorVersion(baseVersion) : incrementPatchVersion(baseVersion)
+                echo "Strategy: promote (staging → master)"
+                echo "Version increment: ${hasFeature ? 'MINOR' : 'PATCH'} | has feature branches: ${hasFeature}"
+
+              } else if (lastMerge.contains('bugfix/') || lastMerge.contains('hotfix/')) {
+                isDirectHotfix = true
+                releaseVersion = incrementPatchVersion(baseVersion)
+                env.TAG = sh(script: "git describe --tags", returnStdout: true).trim()
+                echo "Strategy: rebuild (direct hotfix → master)"
+                echo "Version increment: PATCH"
+
+              } else {
+                isDirectHotfix = false
+                releaseVersion = incrementMinorVersion(baseVersion)
+                echo "Strategy: promote (fallback — unknown branch prefix)"
+                echo "Version increment: MINOR"
+              }
+
+              echo "Version bump: ${baseVersion} → ${releaseVersion}"
               env.PUBLISH_TAGS = resolvePublishTags(releaseVersion).join(" ")
             } else {
-              // If the branch is feature or staging, the version is not increased. Build tags are simply collected
               env.PUBLISH_TAGS = resolvePublishTags(baseVersion).join(" ")
             }
+
             echo "Tags to be published: ${env.PUBLISH_TAGS}"
           }
         }
       }
       stage('Build Docker Images for non-master branch'){
+        // !Must fire on feature and staging builds, and also on bugfix -> master
         // This stage should always run IF build skipping is NOT enabled (default)
         // Build skipping is useful when there is a need to "build" all jobs
         // successfully without running actual build process (e.g. when creating
         // hundreds of job items simultaneously via DSL)
         // Also we do not collect images on the master
         when {
-          allOf {
-            expression { !skipBuildCompletely }
-            not {
-              environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
-            }
-          }
+          // TODO: disabled temporarily for versioning testing
+          // allOf {
+          //   expression { !skipBuildCompletely }
+          //   not {
+          //     environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
+          //   }
+          // }
+          expression { false }
         }
 
         // Set environment for this stage: removed 
@@ -122,9 +156,12 @@ def call(String useDockerfile = ''){
       }
 
       stage('Pull Images for master branch'){
+        // !Must fire on staging -> master builds
         // A pull image with the tag "<version>-staging" must occur on the master branch. This way, existing images can be promoted
         when {
-          environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
+          // TODO: disabled temporarily for versioning testing
+          // environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
+          expression { false }
         }
 
         steps {
@@ -166,9 +203,13 @@ def call(String useDockerfile = ''){
         }
       }
 
-      stage("Tag & Publish Images") {
-        // Regardless of the GOT_REPOSITORY_BRANCH all builded/pulled images 
+      stage(“Tag & Publish Images”) {
+        // Regardless of the GOT_REPOSITORY_BRANCH all builded/pulled images
         // will be retaged and pushed to the registry (if the parameter “DOCKER_RUN_PUSH”=true)
+        when {
+          // TODO: disabled temporarily for versioning testing
+          expression { false }
+        }
         steps {
           script {
             List images = []
@@ -253,7 +294,7 @@ def call(String useDockerfile = ''){
 }
 
 def incrementPatchVersion(version) {
-  // increments the "patch" part of the current version. To increase "major" and "minor" parts, we must do this manually
+  // increments the "patch" part of the current version. To increase "major", we must do this manually
   def parts = version.tokenize(".")
 
   if (parts.size() != 3) {
@@ -263,6 +304,20 @@ def incrementPatchVersion(version) {
   def minor = parts[1].toInteger()
   def patch = parts[2].toInteger()
   patch++
+  return "${major}.${minor}.${patch}"
+}
+
+def incrementMinorVersion(version) {
+  // increments the "minor" part of the current version. To increase "major", we must do this manually
+  def parts = version.tokenize(".")
+
+  if (parts.size() != 3) {
+    error("Version format must be major.minor.patch")
+  }
+  def major = parts[0].toInteger()
+  def minor = parts[1].toInteger()
+  def patch = 0
+  minor++
   return "${major}.${minor}.${patch}"
 }
 
