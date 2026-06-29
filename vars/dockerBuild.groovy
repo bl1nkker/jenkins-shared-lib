@@ -125,14 +125,9 @@ def call(String useDockerfile = ''){
         // hundreds of job items simultaneously via DSL)
         // Also we do not collect images on the master
         when {
-          // TODO: disabled temporarily for versioning testing
-          // allOf {
-          //   expression { !skipBuildCompletely }
-          //   not {
-          //     environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
-          //   }
-          // }
-          expression { false }
+          expression {
+            !skipBuildCompletely && (env.GIT_REPOSITORY_BRANCH != 'master' || isDirectHotfix)
+          }
         }
 
         // Set environment for this stage: removed 
