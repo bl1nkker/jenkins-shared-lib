@@ -117,22 +117,16 @@ def call(String useDockerfile = ''){
           }
         }
       }
-      stage('Build Docker Images for non-master branch'){
-        // !Must fire on feature and staging builds, and also on bugfix -> master
-        // This stage should always run IF build skipping is NOT enabled (default)
+      stage('Build Docker Images'){
+        // Runs on feature/staging branches and on direct hotfix -> master (isDirectHotfix=true)
         // Build skipping is useful when there is a need to "build" all jobs
         // successfully without running actual build process (e.g. when creating
         // hundreds of job items simultaneously via DSL)
-        // Also we do not collect images on the master
         when {
           expression {
             !skipBuildCompletely && (env.GIT_REPOSITORY_BRANCH != 'master' || isDirectHotfix)
           }
         }
-
-        // Set environment for this stage: removed 
-        // since 'env.getEnviromnet()' will be without these values
-        // this is incompatible with later steps
 
         steps {
           echo "Effective value of TAG environment variable is '${env.TAG}' (Groovy)"
@@ -161,9 +155,9 @@ def call(String useDockerfile = ''){
         }
       }
 
-      stage('Pull Images for master branch'){
-        // !Must fire on staging -> master builds
-        // A pull image with the tag "<version>-staging" must occur on the master branch. This way, existing images can be promoted
+      stage('Promote Staging Images'){
+        // Runs only on staging -> master (isDirectHotfix=false)
+        // Pulls the existing staging image and retags it as release - no rebuild needed
         when {
           expression { env.GIT_REPOSITORY_BRANCH == 'master' && !isDirectHotfix }
         }
@@ -208,12 +202,7 @@ def call(String useDockerfile = ''){
       }
 
       stage('Tag & Publish Images') {
-        // Regardless of the GOT_REPOSITORY_BRANCH all builded/pulled images
-        // will be retaged and pushed to the registry (if the parameter “DOCKER_RUN_PUSH”=true)
-        when {
-          // TODO: disabled temporarily for versioning testing
-          expression { false }
-        }
+        // Runs always - retags built/promoted images and pushes to registry if DOCKER_RUN_PUSH=true
         steps {
           script {
             List images = []
