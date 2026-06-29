@@ -165,9 +165,7 @@ def call(String useDockerfile = ''){
         // !Must fire on staging -> master builds
         // A pull image with the tag "<version>-staging" must occur on the master branch. This way, existing images can be promoted
         when {
-          // TODO: disabled temporarily for versioning testing
-          // environment name: 'GIT_REPOSITORY_BRANCH', value: 'master'
-          expression { false }
+          expression { env.GIT_REPOSITORY_BRANCH == 'master' && !isDirectHotfix }
         }
 
         steps {
