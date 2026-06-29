@@ -79,24 +79,35 @@ def call(String useDockerfile = ''){
                 def hasFeature = stagingMerges.any { it.contains('feature/') }
                 isDirectHotfix = false
                 releaseVersion = hasFeature ? incrementMinorVersion(baseVersion) : incrementPatchVersion(baseVersion)
-                echo "Strategy: promote (staging → master)"
-                echo "Version increment: ${hasFeature ? 'MINOR' : 'PATCH'} | has feature branches: ${hasFeature}"
+                echo "Strategy: promote (staging -> master)"
+                echo "Version increment: ${hasFeature ? 'MINOR' : 'PATCH'}"
+                echo "Changes in this release:"
+                stagingMerges.each { line ->
+                  if (line.contains('feature/'))      echo "  [feature] ${line}"
+                  else if (line.contains('bugfix/'))  echo "  [bugfix]  ${line}"
+                  else if (line.contains('hotfix/'))  echo "  [hotfix]  ${line}"
+                  else                                echo "  [other]   ${line}"
+                }
 
               } else if (lastMerge.contains('bugfix/') || lastMerge.contains('hotfix/')) {
                 isDirectHotfix = true
                 releaseVersion = incrementPatchVersion(baseVersion)
                 env.TAG = sh(script: "git describe --tags", returnStdout: true).trim()
-                echo "Strategy: rebuild (direct hotfix → master)"
+                echo "Strategy: rebuild (direct hotfix -> master)"
                 echo "Version increment: PATCH"
+                echo "Changes in this release:"
+                echo "  [hotfix] ${lastMerge}"
 
               } else {
                 isDirectHotfix = false
                 releaseVersion = incrementMinorVersion(baseVersion)
-                echo "Strategy: promote (fallback — unknown branch prefix)"
+                echo "Strategy: promote (fallback - unknown branch prefix)"
                 echo "Version increment: MINOR"
+                echo "Changes in this release:"
+                echo "  [unknown] ${lastMerge}"
               }
 
-              echo "Version bump: ${baseVersion} → ${releaseVersion}"
+              echo "Version bump: ${baseVersion} -> ${releaseVersion}"
               env.PUBLISH_TAGS = resolvePublishTags(releaseVersion).join(" ")
             } else {
               env.PUBLISH_TAGS = resolvePublishTags(baseVersion).join(" ")
