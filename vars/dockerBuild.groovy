@@ -203,7 +203,7 @@ def call(String useDockerfile = ''){
         }
       }
 
-      stage(“Tag & Publish Images”) {
+      stage('Tag & Publish Images') {
         // Regardless of the GOT_REPOSITORY_BRANCH all builded/pulled images
         // will be retaged and pushed to the registry (if the parameter “DOCKER_RUN_PUSH”=true)
         when {
